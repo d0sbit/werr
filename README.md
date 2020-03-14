@@ -3,6 +3,8 @@ werr is a Go library that makes web error handling simpler.
 
 This library uses Go modules and is follows the Go 1.13 convention of error values implementing `Unwrap() error` to express one error wrapping another.
 
+See godoc at https://godoc.org/github.com/d0sbit/werr
+
 # Usage
 
 ```go
