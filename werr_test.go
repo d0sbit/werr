@@ -1,6 +1,12 @@
 package werr
 
-import "net/http"
+import (
+	"fmt"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"os"
+)
 
 func ExampleFull() {
 
@@ -8,7 +14,7 @@ func ExampleFull() {
 	something := func() error { return nil }
 
 	// handlers implements http.Handler and thus return no error
-	_ = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		// wrap your handler in a WriteError which does sensible things with errors
 		WriteError(w, func() error {
@@ -50,7 +56,8 @@ func ExampleFull() {
 				return ErrorCodeShowf(504, err, "something internal went awry")
 			}
 
-			// TODO: write successful response
+			// write successful response
+			fmt.Fprint(w, `SUCCESS`)
 
 			// WriteError does nothing if passed nil
 			return nil
@@ -58,4 +65,10 @@ func ExampleFull() {
 
 	})
 
+	r, _ := http.NewRequest("GET", "/", nil)
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, r)
+	io.Copy(os.Stdout, w.Result().Body)
+
+	// Output: SUCCESS
 }
