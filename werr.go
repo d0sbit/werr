@@ -1,3 +1,4 @@
+// Package werr provides some convenient error wrapping for use in HTTP handlers.
 package werr
 
 import (
@@ -27,15 +28,25 @@ func ErrLoc(err error) error {
 	return fmt.Errorf("%s:%v :: %w", file, line, err)
 }
 
+// ErrorCoder interface is for errors that can return an http status code.
 type ErrorCoder interface{ ErrorCode() int }
+
+// ErrorShower interface is for errors that can return a message intended to be shown to a user.
 type ErrorShower interface{ ErrorShow() string }
+
+// ErrorIDer interface is for errors that can return a unique ID for this chain of errors.
+// This can be useful when trying to correlate errors reported by users to more detailed information in a log.
 type ErrorIDer interface{ ErrorID() string }
+
+// ErrorLocer interface is for errors that can return location (file:line) information.
 type ErrorLocer interface{ ErrorLoc() string }
 
+// mkid returns a (usually) unique identifier
 func mkid() string {
 	return fmt.Sprintf("%X", rand.Int63())
 }
 
+// errDetail is used internally by the Error... methods.
 type errDetail struct {
 	code int    // http status code
 	show string // message to return in HTTP response
@@ -44,6 +55,7 @@ type errDetail struct {
 	id   string // unique id
 }
 
+// Error implements the error interface.
 func (e *errDetail) Error() string {
 
 	var buf bytes.Buffer
@@ -55,18 +67,22 @@ func (e *errDetail) Error() string {
 	return buf.String()
 }
 
+// ErrorLoc returns a string describing the location (file:line) of the error.
 func (e *errDetail) ErrorLoc() string {
 	return e.loc
 }
 
+// ErrorShow returns the "show" message output in an http response.
 func (e *errDetail) ErrorShow() string {
 	return e.show
 }
 
+// ErrorID returns the unique ID associated with this error chain.
 func (e *errDetail) ErrorID() string {
 	return e.id
 }
 
+// ErrorCode returns the http status code.
 func (e *errDetail) ErrorCode() int {
 	ret := e.code
 	if ret == 0 {
@@ -75,6 +91,7 @@ func (e *errDetail) ErrorCode() int {
 	return ret
 }
 
+// Unwrap returns the underlying error
 func (e *errDetail) Unwrap() error {
 	return e.err
 }
